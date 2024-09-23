@@ -1,0 +1,35 @@
+name: Release Process Automation
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Read version from file
+        id: get_version
+        run: |
+          VERSION=$(cat VERSION.txt)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Create release tag
+        run: |
+          git tag -a v${{ env.VERSION }} -m "Release version ${{ env.VERSION }}"
+          git push origin v${{ env.VERSION }}
