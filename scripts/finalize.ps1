@@ -1,21 +1,22 @@
-param([string]$version)
-
-if (-not $version) {
-    Write-Host "Please provide a version number."
-    exit 1
-}
+# release.ps1
 
 # Merge release branch into main
 git checkout main
-git merge "release/$version"
+git pull origin main
+$version = Get-Content VERSION.txt
+git merge --no-ff "release/$version"
 
-# Merge release branch into develop
-git checkout develop
-git merge "release/$version"
-
-# Create a Git tag and push to the repository
+# Tag the release
 git tag -a "v$version" -m "Release version $version"
-git push origin main develop
+git push origin main
 git push origin "v$version"
 
-Write-Host "Release $version created and pushed."
+# Merge the release branch back into develop
+git checkout develop
+git pull origin develop
+git merge --no-ff "release/$version"
+git push origin develop
+
+# Delete the release branch
+git branch -d "release/$version"
+git push origin --delete "release/$version"
