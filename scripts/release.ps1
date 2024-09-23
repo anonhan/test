@@ -1,45 +1,32 @@
-# finalize.ps1
+# create_release.ps1
 
-# Ensure the script is run from the project root
-Set-Location -Path (Split-Path -Parent $MyInvocation.MyCommand.Path)
+# Exit immediately if a command exits with a non-zero status.
+$ErrorActionPreference = "Stop"
 
-# Read the version number from VERSION.txt
-$version = Get-Content VERSION.txt
-<<<<<<< HEAD
+# Get the version number from the first argument and remove 'v' prefix if present
+$version = $args[0] -replace '^v', ''
 
-# Merge the release branch into main
-git checkout main
-git pull origin main
-git merge --no-ff "release/v$version"
+if (-not $version) {
+    Write-Host "Please provide a version number."
+    exit 1
+}
 
-# Tag the release
-git tag -a "v$version" -m "Release version $version"
-
-# Push the changes and tags to the remote repository
-git push origin main
-git push origin "v$version"
-
-# Merge the release branch back into develop
+# Checkout develop branch and pull the latest changes
 git checkout develop
 git pull origin develop
-git merge --no-ff "release/v$version"
 
-# Push the changes to the remote repository
-git push origin develop
-
-# Delete the release branch locally and remotely
-git branch -d "release/v$version"
-git push origin --delete "release/v$version"
-=======
-
-# Create a release branch
-git checkout develop
-git pull origin develop
-git checkout -b "release/v$version"
+# Create a new release branch
+git checkout -b "release/$version"
 
 # Run tests
-python -m unittest discover
+Write-Host "Running tests for release version v$version..."
+pytest
 
-# Push the release branch to the remote repository
-git push origin "release/v$version"
->>>>>>> release/v
+if ($LASTEXITCODE -eq 0) {
+    Write-Host "Tests passed for version v$version."
+} else {
+    Write-Host "Tests failed. Exiting release process."
+    exit 1
+}
+
+Write-Host "Release branch release/v$version created and tests run. Now, finalize the release."
