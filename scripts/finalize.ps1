@@ -1,21 +1,31 @@
-param([string]$version)
+# finalize.ps1
 
-if (-not $version) {
-    Write-Host "Please provide a version number."
-    exit 1
-}
+# Ensure the script is run from the project root
+Set-Location -Path (Split-Path -Parent $MyInvocation.MyCommand.Path)
 
-# Merge release branch into main
+# Read the version number from VERSION.txt
+$version = Get-Content VERSION.txt
+
+# Merge the release branch into main
 git checkout main
-git merge "release/$version"
+git pull origin main
+git merge --no-ff "release/v$version"
 
-# Merge release branch into develop
-git checkout develop
-git merge "release/$version"
-
-# Create a Git tag and push to the repository
+# Tag the release
 git tag -a "v$version" -m "Release version $version"
-git push origin main develop
+
+# Push the changes and tags to the remote repository
+git push origin main
 git push origin "v$version"
 
-Write-Host "Release $version created and pushed."
+# Merge the release branch back into develop
+git checkout develop
+git pull origin develop
+git merge --no-ff "release/v$version"
+
+# Push the changes to the remote repository
+git push origin develop
+
+# Delete the release branch locally and remotely
+git branch -d "release/v$version"
+git push origin --delete "release/v$version"

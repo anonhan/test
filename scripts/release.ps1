@@ -5,6 +5,7 @@ Set-Location -Path (Split-Path -Parent $MyInvocation.MyCommand.Path)
 
 # Read the version number from VERSION.txt
 $version = Get-Content VERSION.txt
+<<<<<<< HEAD
 
 # Merge the release branch into main
 git checkout main
@@ -29,3 +30,16 @@ git push origin develop
 # Delete the release branch locally and remotely
 git branch -d "release/v$version"
 git push origin --delete "release/v$version"
+=======
+
+# Create a release branch
+git checkout develop
+git pull origin develop
+git checkout -b "release/v$version"
+
+# Run tests
+python -m unittest discover
+
+# Push the release branch to the remote repository
+git push origin "release/v$version"
+>>>>>>> release/v
